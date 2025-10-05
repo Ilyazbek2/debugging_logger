@@ -1,0 +1,47 @@
+import itertools
+import random
+from collections import deque
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class BinaryTreeNode:
+    val: int
+    left: Optional["BinaryTreeNode"] = None
+    right: Optional["BinaryTreeNode"] = None
+
+    def __repr__(self):
+        return f"<BinaryTreeNode[{self.val}]>"
+
+def restore_tree(path_to_log_file: str) -> BinaryTreeNode:
+    nodes = {}
+    with open(path_to_log_file, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            if "Visiting" in line:
+                val_str = line.split("[")[1].split("]")[0]
+                node_val = int(val_str)
+                if node_val not in nodes:
+                    nodes[node_val] = BinaryTreeNode(node_val)
+                node = nodes[node_val]
+            if "left is not empty" in line:
+                left_val = int(line.split("[")[2].split("]")[0])
+                if left_val not in nodes:
+                    nodes[left_val] = BinaryTreeNode(left_val)
+                node.left = nodes[left_val]
+            if "right is not empty" in line:
+                right_val = int(line.split("[")[2].split("]")[0])
+                if right_val not in nodes:
+                    nodes[right_val] = BinaryTreeNode(right_val)
+                node.right = nodes[right_val]
+
+    all_nodes = set(nodes.values())
+    children = set()
+    for n in nodes.values():
+        if n.left: children.add(n.left)
+        if n.right: children.add(n.right)
+
+    root = (all_nodes - children).pop()
+    return root
